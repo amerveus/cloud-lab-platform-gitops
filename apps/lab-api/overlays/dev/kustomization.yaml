@@ -12,6 +12,7 @@ configMapGenerator:
       - TABLE_NAME=cloud-lab-platform-dev-lab-requests
       - QUEUE_URL=https://sqs.us-east-1.amazonaws.com/510490942608/cloud-lab-platform-dev-lab-jobs
       - LOG_LEVEL=INFO
+      - CHAOS_ENABLED=true
 replicas:
   - name: lab-api
     count: 2
