@@ -18,6 +18,7 @@ spec:
         app.kubernetes.io/part-of: cloud-lab-platform
     spec:
       serviceAccountName: lab-api
+      terminationGracePeriodSeconds: 45
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -33,6 +34,10 @@ spec:
       containers:
         - name: lab-api
           image: lab-api
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 15
           ports:
             - name: http
               containerPort: 8080
