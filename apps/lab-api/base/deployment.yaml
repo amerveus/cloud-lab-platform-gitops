@@ -39,6 +39,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: lab-api-config
+            - secretRef:
+                name: lab-api-secrets
+                optional: true
           readinessProbe:
             httpGet:
               path: /healthz
