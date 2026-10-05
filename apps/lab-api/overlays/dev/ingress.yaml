@@ -9,6 +9,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-east-1:510490942608:regional/webacl/cloud-lab-platform-dev-api/116c208f-0a80-4363-8054-4b295d4aaef7
     alb.ingress.kubernetes.io/tags: Project=cloud-lab-platform,Environment=dev,ManagedBy=aws-load-balancer-controller
 spec:
   ingressClassName: alb
