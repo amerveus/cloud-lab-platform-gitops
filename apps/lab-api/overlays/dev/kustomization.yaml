@@ -19,4 +19,4 @@ replicas:
 images:
   - name: lab-api
     newName: 510490942608.dkr.ecr.us-east-1.amazonaws.com/cloud-lab-platform/lab-api
-    newTag: cbd2bf5af6ebc317482fcbaf58c8ff4e46b615bb
+    newTag: 91f7c20f78e4178389781fa4bb5282f4917933b8
