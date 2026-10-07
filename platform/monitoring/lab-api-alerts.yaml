@@ -1,0 +1,50 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-api-alerts
+spec:
+  groups:
+    - name: lab-api
+      rules:
+        - alert: LabApiHighErrorRate
+          expr: |
+            sum(rate(http_requests_total{namespace="lab-app", route!="/healthz", status=~"5.."}[2m]))
+              /
+            clamp_min(sum(rate(http_requests_total{namespace="lab-app", route!="/healthz"}[2m])), 0.001)
+              > 0.05
+          for: 2m
+          labels:
+            severity: critical
+            team: cloud-lab-platform
+          annotations:
+            summary: "lab-api 5xx ratio is {{ $value | humanizePercentage }} (threshold 5%, 2m)"
+            runbook: "Check recent deploys (Argo CD history) and lab-api logs; roll back by reverting the gitops tag."
+        - alert: LabApiHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(http_request_duration_seconds_bucket{namespace="lab-app", route!="/healthz"}[5m]))
+            ) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            team: cloud-lab-platform
+          annotations:
+            summary: "lab-api p95 latency is {{ $value | humanizeDuration }} (threshold 500ms, 5m)"
+        - alert: LabApiDown
+          expr: absent(up{namespace="lab-app", service="lab-api"} == 1)
+          for: 2m
+          labels:
+            severity: critical
+            team: cloud-lab-platform
+          annotations:
+            summary: "No healthy lab-api scrape target for 2 minutes"
+    - name: ops-host
+      rules:
+        - alert: OpsHostDown
+          expr: up{job="ops-host"} == 0
+          for: 5m
+          labels:
+            severity: warning
+            team: cloud-lab-platform
+          annotations:
+            summary: "Ops host node_exporter unreachable for 5 minutes"

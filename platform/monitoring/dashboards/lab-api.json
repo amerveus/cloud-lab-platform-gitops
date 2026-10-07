@@ -1,0 +1,16 @@
+{
+  "title": "lab-api",
+  "uid": "lab-api",
+  "schemaVersion": 39,
+  "tags": ["cloud-lab-platform"],
+  "time": {"from": "now-1h", "to": "now"},
+  "refresh": "30s",
+  "panels": [
+    {"type": "timeseries", "title": "Requests per second by route (health checks excluded)", "datasource": {"type": "prometheus", "uid": "prometheus"}, "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}, "targets": [{"expr": "sum by (route) (rate(http_requests_total{namespace=\"lab-app\",route!=\"/healthz\"}[2m]))", "legendFormat": "{{route}}", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}], "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []}},
+    {"type": "timeseries", "title": "5xx error ratio (alert at 5%)", "datasource": {"type": "prometheus", "uid": "prometheus"}, "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}, "targets": [{"expr": "sum(rate(http_requests_total{namespace=\"lab-app\",route!=\"/healthz\",status=~\"5..\"}[2m])) / clamp_min(sum(rate(http_requests_total{namespace=\"lab-app\",route!=\"/healthz\"}[2m])), 0.001)", "legendFormat": "5xx ratio", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}], "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []}},
+    {"type": "timeseries", "title": "p95 latency (alert at 500ms)", "datasource": {"type": "prometheus", "uid": "prometheus"}, "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}, "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"lab-app\",route!=\"/healthz\"}[5m])))", "legendFormat": "p95", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}], "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []}},
+    {"type": "stat", "title": "Labs created (last hour)", "datasource": {"type": "prometheus", "uid": "prometheus"}, "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}, "targets": [{"expr": "sum(increase(lab_requests_created_total[1h]))", "legendFormat": "labs", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]},
+    {"type": "timeseries", "title": "Ops host load (node_exporter via Ansible)", "datasource": {"type": "prometheus", "uid": "prometheus"}, "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8}, "targets": [{"expr": "node_load1{job=\"ops-host\"}", "legendFormat": "load1", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}]},
+    {"type": "timeseries", "title": "Ops host memory available", "datasource": {"type": "prometheus", "uid": "prometheus"}, "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8}, "targets": [{"expr": "node_memory_MemAvailable_bytes{job=\"ops-host\"}", "legendFormat": "available", "refId": "A", "datasource": {"type": "prometheus", "uid": "prometheus"}}], "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []}}
+  ]
+}
