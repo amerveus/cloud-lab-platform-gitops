@@ -1,0 +1,103 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 92.1.0
+    helm:
+      valuesObject:
+        fullnameOverride: kps
+        # EKS manages these control-plane components; they are not scrapable.
+        kubeEtcd:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        defaultRules:
+          rules:
+            etcd: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
+            kubeControllerManager: false
+            kubeProxy: false
+        prometheus:
+          prometheusSpec:
+            retention: 3d
+            # Discover ServiceMonitors and rules in every namespace, not only Helm-labelled ones.
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            resources:
+              requests:
+                cpu: 100m
+                memory: 400Mi
+              limits:
+                memory: 1Gi
+            additionalScrapeConfigs:
+              - job_name: ops-host
+                static_configs:
+                  - targets: ["10.10.5.157:9100"]
+                    labels:
+                      env: dev
+                      role: ops-host
+        alertmanager:
+          serviceAccount:
+            name: kps-alertmanager
+          alertmanagerSpec:
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+          config:
+            global:
+              resolve_timeout: 5m
+            route:
+              receiver: "null"
+              group_by: [alertname, namespace]
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
+              routes:
+                - matchers: ['team="cloud-lab-platform"']
+                  receiver: sns
+            receivers:
+              - name: "null"
+              - name: sns
+                sns_configs:
+                  - topic_arn: arn:aws:sns:us-east-1:510490942608:cloud-lab-platform-dev-notifications
+                    sigv4:
+                      region: us-east-1
+                    subject: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+                    message: '{{ range .Alerts }}{{ .Annotations.summary }}{{ "\n" }}{{ end }}'
+                    send_resolved: true
+        grafana:
+          admin:
+            existingSecret: grafana-admin
+            userKey: admin-user
+            passwordKey: admin-password
+          sidecar:
+            dashboards:
+              enabled: true
+              searchNamespace: ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
