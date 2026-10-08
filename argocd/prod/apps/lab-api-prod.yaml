@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lab-api-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/amerveus/cloud-lab-platform-gitops.git
+    targetRevision: main
+    path: apps/lab-api/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lab-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - PruneLast=true
