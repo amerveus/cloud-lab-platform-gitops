@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+configMapGenerator:
+  - name: lab-api-config
+    namespace: lab-app
+    literals:
+      - AWS_REGION=us-east-1
+      - TABLE_NAME=cloud-lab-platform-prod-lab-requests
+      - QUEUE_URL=https://sqs.us-east-1.amazonaws.com/510490942608/cloud-lab-platform-prod-lab-jobs
+      - LOG_LEVEL=INFO
+replicas:
+  - name: lab-api
+    count: 2
+# Promotion = a reviewed PR that sets this one line to a SHA already proven in dev.
+images:
+  - name: lab-api
+    newName: 510490942608.dkr.ecr.us-east-1.amazonaws.com/cloud-lab-platform/lab-api
+    newTag: 91f7c20f78e4178389781fa4bb5282f4917933b8
