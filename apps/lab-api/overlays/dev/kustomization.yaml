@@ -4,6 +4,7 @@ resources:
   - ../../base
   - ingress.yaml
   - externalsecret.yaml
+  - servicemonitor.yaml
 configMapGenerator:
   - name: lab-api-config
     namespace: lab-app

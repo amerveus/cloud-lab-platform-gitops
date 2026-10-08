@@ -6,4 +6,3 @@ resources:
   - serviceaccount.yaml
   - deployment.yaml
   - service.yaml
-  - servicemonitor.yaml
